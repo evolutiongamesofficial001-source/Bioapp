@@ -1,335 +1,281 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PI Chat</title>
 
-<title>BioLab App</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0a0a0a;
+    color:#00ff88;
+}
+.container { padding:15px; }
 
-*{
-box-sizing:border-box;
-font-family:Arial;
+.topbar {
+    font-size:18px;
+    margin-bottom:10px;
 }
 
-body{
-margin:0;
-background:#0b0f1c;
-color:white;
-display:flex;
-flex-direction:column;
-height:100vh;
+input, button {
+    width:100%;
+    padding:12px;
+    margin:5px 0;
+    border-radius:10px;
+    border:none;
 }
 
-/* topo */
+input { background:#111; color:#0f0; }
+button { background:#00ff88; color:black; font-weight:bold; }
 
-header{
-background:#11182e;
-padding:15px;
-text-align:center;
-font-weight:bold;
-font-size:18px;
+.card {
+    background:#111;
+    padding:15px;
+    border-radius:10px;
+    margin:5px 0;
 }
 
-/* telas */
-
-.screen{
-flex:1;
-overflow:auto;
-padding:15px;
-display:none;
+.msg {
+    background:#003322;
+    padding:10px;
+    border-radius:10px;
+    margin:5px 0;
 }
 
-.active{
-display:block;
+.me {
+    background:#00aa55;
+    color:black;
 }
 
-/* cards */
-
-.card{
-background:#141c33;
-padding:15px;
-border-radius:14px;
-margin-bottom:12px;
+img {
+    max-width:100%;
+    border-radius:10px;
 }
-
-/* texto */
-
-.title{
-font-weight:bold;
-margin-bottom:5px;
-}
-
-.small{
-font-size:14px;
-opacity:0.8;
-}
-
-/* chat */
-
-#chat{
-height:70%;
-overflow:auto;
-margin-bottom:10px;
-}
-
-.msg{
-max-width:70%;
-padding:10px;
-border-radius:12px;
-margin-bottom:10px;
-}
-
-.paciente{
-background:#3c7cff;
-margin-left:auto;
-}
-
-.suporte{
-background:#1f2b50;
-}
-
-.chatInput{
-display:flex;
-}
-
-.chatInput input{
-flex:1;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#0b1226;
-color:white;
-}
-
-.chatInput button{
-margin-left:6px;
-padding:12px;
-border:none;
-border-radius:10px;
-background:#3c7cff;
-color:white;
-}
-
-/* nav */
-
-nav{
-height:60px;
-background:#11182e;
-display:flex;
-}
-
-nav button{
-flex:1;
-border:none;
-background:none;
-color:white;
-font-size:12px;
-}
-
 </style>
 </head>
 
 <body>
 
-<header>BioLab Patient</header>
-
-<!-- HOME -->
-
-<div id="home" class="screen active">
-
-<div class="card">
-<div class="title">Próximo exame</div>
-<div class="small">Hemograma • 22/03 às 07:30</div>
-</div>
-
-<div class="card">
-<div class="title">Resultado novo</div>
-<div class="small">Vitamina D disponível</div>
-</div>
-
-</div>
-
-<!-- EXAMES -->
-
-<div id="exames" class="screen">
-
-<div class="card">
-
-<div class="title">Hemograma</div>
-
-<div class="small">
-• Jejum de 8 horas<br>
-• Beber apenas água<br>
-• Comparecer às 7h
-</div>
-
-</div>
-
-<div class="card">
-
-<div class="title">Glicemia</div>
-
-<div class="small">
-• Jejum obrigatório<br>
-• Evitar exercícios
-</div>
-
-</div>
-
-</div>
-
-<!-- AGENDAMENTOS -->
-
-<div id="agenda" class="screen">
-
-<div class="card">
-
-<div class="title">Hemograma</div>
-<div class="small">22/03 • 07:30</div>
-
-</div>
-
-</div>
-
-<!-- RESULTADOS -->
-
-<div id="resultados" class="screen">
-
-<div class="card">
-
-<div class="title">Hemograma</div>
-
-<div class="small">
-Status: Concluído
-<br><br>
-<button onclick="baixar()">Baixar PDF</button>
-</div>
-
-</div>
-
-</div>
-
-<!-- CHAT -->
-
-<div id="chatTela" class="screen">
-
-<div id="chat"></div>
-
-<div class="chatInput">
-<input id="msg" placeholder="Digite sua dúvida">
-<button onclick="enviar()">Enviar</button>
-</div>
-
-</div>
-
-<!-- NOTIFICAÇÕES -->
-
-<div id="notif" class="screen">
-
-<div class="card">
-🔔 Seu exame Hemograma está disponível
-</div>
-
-<div class="card">
-🔔 Lembrete: exame amanhã às 07:30
-</div>
-
-</div>
-
-<!-- PERFIL -->
-
-<div id="perfil" class="screen">
-
-<div class="card">
-
-Nome: João Silva  
-<br><br>
-Paciente desde: 2026  
-<br><br>
-Convênio: Particular  
-
-</div>
-
-</div>
-
-<!-- NAV -->
-
-<nav>
-
-<button onclick="abrir('home')">Home</button>
-<button onclick="abrir('exames')">Exames</button>
-<button onclick="abrir('agenda')">Agenda</button>
-<button onclick="abrir('resultados')">Resultados</button>
-<button onclick="abrir('chatTela')">Suporte</button>
-<button onclick="abrir('notif')">Alertas</button>
-<button onclick="abrir('perfil')">Perfil</button>
-
-</nav>
+<div id="app" class="container"></div>
 
 <script>
 
-function abrir(id){
+// 🔐 BLOQUEIO
+let user = localStorage.getItem("user");
 
-document.querySelectorAll(".screen")
-.forEach(s=>s.classList.remove("active"))
-
-document.getElementById(id).classList.add("active")
-
+if (!user) {
+    window.location.href = "registro.html";
 }
 
-/* chat */
+// 🔥 FIREBASE
+const firebaseConfig = {
+  databaseURL: "https://piri-82dcf-default-rtdb.firebaseio.com/"
+};
 
-let mensagens=[]
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
+const app = document.getElementById("app");
+
+let contatoAtual = "";
+let chatRef = null;
+let typingRef = null;
+
+// 🟢 ONLINE
+function setOnline(){
+    let ref = db.ref("status/"+user);
+
+    db.ref(".info/connected").on("value", snap=>{
+        if(snap.val()){
+            ref.set({online:true});
+            ref.onDisconnect().set({online:false});
+        }
+    });
+}
+
+// 🏠 HUB
+function telaHub(){
+
+    app.innerHTML = `
+        <div class="topbar">PI Chat</div>
+
+        <div class="card">
+            👤 Usuário: <b>${user}</b>
+            <button onclick="verUsuario()">Ver usuário</button>
+            <button onclick="irRegistro()">Trocar conta</button>
+        </div>
+
+        <button onclick="telaAdd()">Adicionar Contato</button>
+
+        <div id="lista"></div>
+    `;
+
+    db.ref("contatos/"+user).on("value", snap=>{
+        let lista = snap.val() || [];
+        let html = "";
+
+        lista.forEach(c=>{
+            html += `<div class="card" onclick="abrirChat('${c}')">${c}</div>`;
+        });
+
+        document.getElementById("lista").innerHTML = html;
+    });
+}
+
+// 👤 VER USUÁRIO
+function verUsuario(){
+    alert("Seu usuário é: " + user);
+}
+
+// 🔄 TROCAR CONTA
+function irRegistro(){
+    if(confirm("Deseja sair da conta?")){
+        localStorage.removeItem("user");
+        window.location.href = "registro.html";
+    }
+}
+
+// ➕ CONTATO
+function telaAdd(){
+    app.innerHTML = `
+        <div class="topbar">Adicionar</div>
+        <input id="contato" placeholder="Nome do usuário">
+        <button onclick="addContato()">Adicionar</button>
+        <button onclick="telaHub()">Voltar</button>
+    `;
+}
+
+function addContato(){
+    let nome = document.getElementById("contato").value;
+
+    db.ref("users").once("value", snap=>{
+        let users = snap.val() || {};
+
+        if(!Object.values(users).includes(nome)){
+            alert("Usuário não existe");
+            return;
+        }
+
+        db.ref("contatos/"+user).once("value", s=>{
+            let lista = s.val() || [];
+
+            if(!lista.includes(nome)) lista.push(nome);
+
+            db.ref("contatos/"+user).set(lista);
+
+            telaHub();
+        });
+    });
+}
+
+// 💬 CHAT
+function abrirChat(nome){
+
+    contatoAtual = nome;
+    let chatId = [user, nome].sort().join("_");
+
+    if(chatRef) chatRef.off();
+    if(typingRef) typingRef.off();
+
+    app.innerHTML = `
+        <div class="topbar" id="topo">${nome}</div>
+        <div id="msgs"></div>
+
+        <input id="msg" placeholder="Mensagem" oninput="digitando()">
+        <input type="file" id="img">
+
+        <button onclick="enviar()">Enviar</button>
+        <button onclick="telaHub()">Voltar</button>
+    `;
+
+    // status
+    db.ref("status/"+nome).on("value", snap=>{
+        let s = snap.val();
+        document.getElementById("topo").innerText =
+            nome + (s?.online ? " 🟢 Online" : " ⚫ Offline");
+    });
+
+    // digitando
+    typingRef = db.ref("typing/"+chatId+"/"+nome);
+    typingRef.on("value", snap=>{
+        if(snap.val()){
+            document.getElementById("topo").innerText =
+                nome + " 🟢 digitando...";
+        }
+    });
+
+    // mensagens
+    chatRef = db.ref("chats/"+chatId);
+    chatRef.on("value", snap=>{
+        let msgs = snap.val() || {};
+        let html = "";
+
+        Object.entries(msgs).forEach(([id, m])=>{
+            html += `
+            <div class="msg ${m.de===user?'me':''}">
+                <b>${m.de}</b><br>
+                ${m.texto || ""}
+                ${m.img ? `<img src="${m.img}">` : ""}
+                ${m.de===user?`<br><button onclick="apagar('${id}')">Apagar</button>`:""}
+            </div>
+            `;
+        });
+
+        document.getElementById("msgs").innerHTML = html;
+    });
+}
+
+// ⌨️ DIGITANDO
+function digitando(){
+    let chatId = [user, contatoAtual].sort().join("_");
+
+    db.ref("typing/"+chatId+"/"+user).set(true);
+
+    clearTimeout(window.t);
+
+    window.t = setTimeout(()=>{
+        db.ref("typing/"+chatId+"/"+user).set(false);
+    },1000);
+}
+
+// 📤 ENVIAR
 function enviar(){
+    let texto = document.getElementById("msg").value;
+    let file = document.getElementById("img").files[0];
+    let chatId = [user, contatoAtual].sort().join("_");
 
-let texto=document.getElementById("msg").value
+    if(file){
+        let reader = new FileReader();
+        reader.onload = ()=>salvar(texto, reader.result);
+        reader.readAsDataURL(file);
+    } else {
+        salvar(texto,"");
+    }
 
-if(!texto) return
-
-mensagens.push({tipo:"paciente",msg:texto})
-
-mensagens.push({
-tipo:"suporte",
-msg:"Mensagem recebida. Um atendente responderá."
-})
-
-document.getElementById("msg").value=""
-
-renderChat()
-
+    function salvar(texto,img){
+        db.ref("chats/"+chatId).push({
+            de:user,
+            texto,
+            img
+        });
+        document.getElementById("msg").value="";
+    }
 }
 
-function renderChat(){
-
-let chat=document.getElementById("chat")
-
-chat.innerHTML=""
-
-mensagens.forEach(m=>{
-
-let div=document.createElement("div")
-
-div.className="msg "+m.tipo
-
-div.innerText=m.msg
-
-chat.appendChild(div)
-
-})
-
-chat.scrollTop=chat.scrollHeight
-
+// 🗑️ APAGAR
+function apagar(id){
+    let chatId = [user, contatoAtual].sort().join("_");
+    db.ref("chats/"+chatId+"/"+id).remove();
 }
 
-function baixar(){
-
-alert("Aqui seria baixado o resultado do exame em PDF")
-
-}
+// 🚀 START
+setOnline();
+telaHub();
 
 </script>
 
